@@ -38,8 +38,8 @@ double needleman_wunsch(string &A, string &B, int match_penalty, int mismatch_pe
 
     double time = end(&t);
 
-    // return time;
-    return gflops / (time * 1e9);
+    return time;
+    // return gflops / (time * 1e9);
 
 }
 
