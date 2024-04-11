@@ -18,14 +18,16 @@ double needleman_wunsch(string &A, string &B, int match_penalty, int mismatch_pe
 
     int sequence1_size = A.size(), sequence2_size = B.size();
 
-    vector<vector<int>> dp(sequence1_size + 1, vector<int>(sequence2_size + 1, 0));
+    int **dp = new int *[sequence1_size + 1];
+    for (int i = 0; i <= sequence1_size; i++)
+        dp[i] = new int[sequence2_size + 1];
 
     double gflops = 6 * sequence1_size * sequence2_size;
 
     struct timeval t;
     start(&t);
 
-    #pragma omp parallel for    
+    #pragma omp parallel for 
     for (int i=0; i<=sequence1_size; i++) {
         dp[i][0] = i * gap_penalty;
     }
@@ -36,24 +38,25 @@ double needleman_wunsch(string &A, string &B, int match_penalty, int mismatch_pe
     }
 
     for (int z=1; z<=sequence2_size; z++) {
-        int i=1,j=z;
+        int i,j=z;
         #pragma omp parallel for
-        for(;i<=sequence1_size && j>=1;){
+        for(i=1;i<=sequence1_size && j>=1;i++){
             int score = A[i-1] == B[j-1] ? match_penalty : mismatch_penalty;
             dp[i][j] = max(dp[i-1][j-1] + score, max(dp[i-1][j] + gap_penalty, dp[i][j-1] + gap_penalty));
-            i++;j--;
+            j--;
         }
     }
 
     for (int z=2; z<=sequence1_size; z++) {
-        int j=sequence2_size,i=z;
+        int j,i=z;
         #pragma omp parallel for
-        for(;i<=sequence1_size && j>=1;){
+        for(j=sequence2_size;i<=sequence1_size && j>=1;j--){
             int score = A[i-1] == B[j-1] ? match_penalty : mismatch_penalty;
             dp[i][j] = max(dp[i-1][j-1] + score, max(dp[i-1][j] + gap_penalty, dp[i][j-1] + gap_penalty));
-            i++;j--;
+            i++;
         }
     }
+
 
     double time = end(&t);
 
